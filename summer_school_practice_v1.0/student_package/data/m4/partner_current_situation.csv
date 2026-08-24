@@ -1,0 +1,4 @@
+﻿target_id,callsign,latest_time,lat,lon,altitude,speed,heading,vertical_rate,on_ground,track_length,alt_type,time_source,message_valid,status_flags,validity_flags,latitude_code,longitude_code,altitude_code,speed_code,heading_code,vertical_rate_code
+000001,TEST0001,1710000120,0.020020012860300085,0.020041470537535133,20.0,20.0,90.0,0.0,False,3,barometric,position_time,True,0,127,2097618,2097385,1020,200,9000,32768
+780abc,CES1234,1710000120,31.250381767840807,121.49366891233183,9900.0,231.5,88.0,1.5,False,3,barometric,position_time,True,0,127,2825338,3512655,10900,2315,8800,32918
+780def,,1710000120,,,7400.0,,268.0,-0.8000000000000114,False,3,geometric,position_time,True,2,52,0,0,8400,0,26800,32688

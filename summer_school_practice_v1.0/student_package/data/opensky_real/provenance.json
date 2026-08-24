@@ -1,0 +1,80 @@
+{
+  "anonymous_api": true,
+  "api_documentation": "https://openskynetwork.github.io/opensky-api/rest.html",
+  "dataset_name": "OpenSky Central Europe three-snapshot teaching dataset",
+  "downloaded_at_utc": "2026-08-14T02:06:23.002587Z",
+  "encoded_frame_count": 71,
+  "no_interpolation": true,
+  "no_synthetic_values": true,
+  "normalized_record_count": 71,
+  "parse_error_count": 0,
+  "parsed_record_count": 71,
+  "provider": "The OpenSky Network",
+  "query_bbox_wgs84": {
+    "lamax": 49.5,
+    "lamin": 45.5,
+    "lomax": 12.0,
+    "lomin": 5.0
+  },
+  "repeated_targets": [
+    "3849ff",
+    "3889ff",
+    "3c5434",
+    "3c815e",
+    "407fac",
+    "424cbf",
+    "440b61",
+    "45b534",
+    "45ce47",
+    "48ea3a",
+    "4b17fd",
+    "4b5c1b",
+    "4b5c39",
+    "4b5d54",
+    "4b5d62",
+    "4b5d6e",
+    "4d240c",
+    "4d253b",
+    "7c8066",
+    "896175",
+    "8966d5",
+    "a48850",
+    "a61c53",
+    "ad35c8"
+  ],
+  "requested_interval_seconds": 11.0,
+  "snapshot_count": 3,
+  "source_url": "https://opensky-network.org/api/states/all?lamin=45.5&lomin=5.0&lamax=49.5&lomax=12.0",
+  "sources": [
+    {
+      "content_type": "application/json",
+      "file": "source/opensky_central_europe_snapshot_01.json",
+      "rate_limit_remaining_after_request": "393",
+      "sha256": "e3fef298dcad141c7bfda2574e0bde70f1c41f04f5560a98fac844f3a153af76",
+      "snapshot_index": 1,
+      "snapshot_time": 1786673155,
+      "snapshot_time_utc": "2026-08-14T02:05:55Z",
+      "state_count": 23
+    },
+    {
+      "content_type": "application/json",
+      "file": "source/opensky_central_europe_snapshot_02.json",
+      "rate_limit_remaining_after_request": "391",
+      "sha256": "5ad44403a33cb5dd5654145f3c000e6dbc676c330c221452e198b8025cf4dc84",
+      "snapshot_index": 2,
+      "snapshot_time": 1786673160,
+      "snapshot_time_utc": "2026-08-14T02:06:00Z",
+      "state_count": 24
+    },
+    {
+      "content_type": "application/json",
+      "file": "source/opensky_central_europe_snapshot_03.json",
+      "rate_limit_remaining_after_request": "389",
+      "sha256": "6d7dfb179fb1d36a5ec308b4dadd539f319337e3ae7244fc5ac0d63d0e52bf38",
+      "snapshot_index": 3,
+      "snapshot_time": 1786673174,
+      "snapshot_time_utc": "2026-08-14T02:06:14Z",
+      "state_count": 24
+    }
+  ]
+}

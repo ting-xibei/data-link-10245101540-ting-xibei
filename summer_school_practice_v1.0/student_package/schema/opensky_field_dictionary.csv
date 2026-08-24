@@ -1,0 +1,15 @@
+index,field,type,nullable,unit,course_use
+0,icao24,string,false,,六位十六进制目标标识
+1,callsign,string,true,,呼号，需去除首尾空格
+2,origin_country,string,true,,来源元数据
+3,time_position,integer,true,Unix second,优先状态时间
+4,last_contact,integer,true,Unix second,time_position为空时回退
+5,longitude,number,true,degree,经度
+6,latitude,number,true,degree,纬度
+7,baro_altitude,number,true,meter,优先发送高度
+8,on_ground,boolean,false,,地面状态
+9,velocity,number,true,m/s,地速
+10,true_track,number,true,degree,航向
+11,vertical_rate,number,true,m/s,垂直速度
+13,geo_altitude,number,true,meter,气压高度为空时备用
+16,position_source,integer,true,,来源元数据

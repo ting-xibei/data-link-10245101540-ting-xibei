@@ -1,0 +1,14 @@
+field,type,nullable,unit,source,meaning
+target_id,string,false,,target_id,六位小写十六进制目标标识
+callsign,string,true,,callsign+validity_flags.bit6,有效呼号
+timestamp,integer,false,Unix second,timestamp,状态时间
+time_source,string,false,,status_flags.bit2,position_time或last_contact_fallback
+lat,number,true,degree,latitude_code+validity_flags.bit0,纬度物理量
+lon,number,true,degree,longitude_code+validity_flags.bit1,经度物理量
+altitude,number,true,meter,altitude_code+validity_flags.bit2,高度物理量
+alt_type,string,false,,status_flags.bit1,barometric/geometric/unknown
+speed,number,true,m/s,speed_code+validity_flags.bit3,地速物理量
+heading,number,true,degree,heading_code+validity_flags.bit4,航向物理量
+vertical_rate,number,true,m/s,vertical_rate_code+validity_flags.bit5,垂直速度物理量
+on_ground,boolean,false,,status_flags.bit0,地面状态
+message_valid,boolean,false,,完整帧接收判据,不代表来源真实性或安全完整性

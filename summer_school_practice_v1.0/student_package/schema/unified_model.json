@@ -1,0 +1,16 @@
+{
+  "track_id": "",
+  "source": "",
+  "timestamp": 0,
+  "identity": {"callsign": null},
+  "position": {"lat": null, "lon": null, "alt": null, "alt_type": "unknown"},
+  "motion": {"speed": null, "heading": null, "vertical_rate": null},
+  "status": {"on_ground": false},
+  "quality": {
+    "position_valid": false,
+    "time_valid": false,
+    "message_valid": false,
+    "time_source": "position_time",
+    "anomaly_flags": []
+  }
+}

@@ -1,0 +1,20 @@
+CREATE TABLE state_record (
+    record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id TEXT,
+    callsign TEXT NULL,
+    timestamp INTEGER,
+    timestamp_source TEXT,
+    message_seq INTEGER,
+    lat REAL NULL,
+    lon REAL NULL,
+    altitude REAL NULL,
+    alt_type TEXT NULL,
+    speed REAL NULL,
+    heading REAL NULL,
+    vertical_rate REAL NULL,
+    on_ground INTEGER,
+    status_flags INTEGER,
+    validity_flags INTEGER,
+    message_valid INTEGER,
+    source TEXT
+);

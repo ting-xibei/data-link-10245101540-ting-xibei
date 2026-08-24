@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+.idea/
+.vscode/
+summer_school_practice_v1.0/environment/wheelhouse/
+.DS_Store
+Thumbs.db
+~$*.docx
+~$*.xlsx

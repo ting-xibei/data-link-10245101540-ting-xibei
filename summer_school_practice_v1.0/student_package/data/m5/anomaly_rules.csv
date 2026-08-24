@@ -1,0 +1,5 @@
+﻿rule_id,alert_type,condition,severity
+R1,POSITION_MISSING,lat或lon为空,HIGH
+R2,DATA_DELAYED,batch_time-record_time>60;record_time取latest_time或timestamp,MEDIUM
+R3,DUPLICATE_RECORD,target_id和timestamp均相同,MEDIUM
+R4,HEADING_OUT_OF_RANGE,heading非空且(heading<0或heading>=360),MEDIUM

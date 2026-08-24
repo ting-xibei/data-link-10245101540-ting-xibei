@@ -1,0 +1,38 @@
+name: 个人实验检查
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载仓库
+        uses: actions/checkout@v4
+
+      - name: 设置Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 建立独立环境
+        run: |
+          python -m venv summer_school_practice_v1.0/.venv
+          summer_school_practice_v1.0/.venv/bin/python -m pip install -r summer_school_practice_v1.0/environment/requirements.txt
+
+      - name: 检查学生实践包
+        working-directory: summer_school_practice_v1.0
+        run: .venv/bin/python environment/run_student_checks.py
+
+      - name: 显示提交完成度
+        working-directory: summer_school_practice_v1.0
+        run: .venv/bin/python environment/check_student_submission.py
+
+      - name: 手动触发时执行最终检查
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: summer_school_practice_v1.0
+        run: .venv/bin/python environment/check_student_submission.py --strict
