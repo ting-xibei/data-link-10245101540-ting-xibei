@@ -1,0 +1,10 @@
+﻿record_no,target_id,stage,field,problem_type,value,description
+4,780bad,parse_or_encode,timestamp,REQUIRED_FIELD_MISSING,,time_position 与 last_contact 均为空。
+5,780bee,parse_or_encode,heading,OUT_OF_RANGE,360.0,"字段量程必须在 [0.0, 359.99999999999994] 内。"
+test_length,,receive_validation,frame,LENGTH_ERROR,,实际帧长度为 40，要求为 41。
+test_magic,780abc,receive_validation,magic,MAGIC_ERROR,,magic 必须为 0x4453。
+test_version,780abc,receive_validation,version,VERSION_ERROR,,version 必须为 1。
+test_message_type,780abc,receive_validation,message_type,MESSAGE_TYPE_ERROR,,message_type 必须为 1。
+test_checksum,780abc,receive_validation,checksum,CHECKSUM_ERROR,,checksum 与前 39 字节重算结果不一致。
+test_reserved_bits,780abc,receive_validation,latitude_code,RESERVED_BITS_ERROR,,纬度容器最高 2 位必须为 0。
+test_flag_value,780abc,receive_validation,lat,FLAG_VALUE_INCONSISTENCY,,有效位为 0 时占位字段必须为 0。

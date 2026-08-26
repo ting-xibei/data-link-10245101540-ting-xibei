@@ -1,0 +1,9 @@
+source_format,input_field,candidate_unified_field,candidate_rule,confidence,review_note
+OpenSky,target_id,track_id,直接改为小写字符串,0.98,检查前导0
+OpenSky,latest_time,timestamp,直接映射Unix秒,0.96,检查正整数
+TeachingLink,latitude_code+validity_flags.bit0,position.lon,有效时按22位纬度公式恢复,0.74,字段层次可能需要核验
+TeachingLink,longitude_code+validity_flags.bit1,position.lat,有效时按22位经度公式恢复,0.74,字段层次可能需要核验
+TeachingLink,altitude_code+validity_flags.bit2,position.alt,有效时code乘1米,0.77,检查物理偏置
+TeachingLink,callsign,identity.callsign,去除补0后直接映射,0.82,检查有效性位
+TeachingLink,status_flags.bit2,quality.time_valid,bit2为1时设false,0.61,检查bit2真实语义
+TeachingLink,message_valid,quality.message_valid,直接映射,0.93,不得扩大为来源可信

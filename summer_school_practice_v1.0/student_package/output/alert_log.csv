@@ -1,0 +1,6 @@
+﻿alert_time,target_id,alert_type,severity,field,description
+1710000120,780def,POSITION_MISSING,HIGH,lat,位置字段缺失：lat。
+1710000120,000001,DATA_DELAYED,MEDIUM,latest_time/timestamp,批次时间 1710000120 与记录时间 1710000000 相差 120 秒，超过 60 秒。
+1710000120,780bbb,HEADING_OUT_OF_RANGE,MEDIUM,heading,"航向 360.0 不在 [0, 360) 度范围内。"
+1710000120,780aaa,DUPLICATE_RECORD,MEDIUM,target_id+timestamp,"联合键 (780aaa, 1710000100) 出现 2 次。"
+1710000120,780aaa,DUPLICATE_RECORD,MEDIUM,target_id+timestamp,"联合键 (780aaa, 1710000100) 出现 2 次。"

@@ -1,0 +1,26 @@
+﻿source_format,input_field,unified_field,mapping_rule,unit_conversion,null_strategy,evidence,verified
+OpenSky,target_id,track_id,小写六位十六进制，保留前导0,无,格式不合法则拒绝记录,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,latest_time,timestamp,直接映射为正整数 Unix 秒,s,非正值使 time_valid=false,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,callsign,identity.callsign,去首尾空白,无,空白为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,lat/lon,position.lat/position.lon,合法坐标直接映射,degree,空值或越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,altitude+alt_type,position.alt/position.alt_type,直接映射并保留高度来源,m,高度无效时 null/unknown,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,speed,motion.speed,直接映射,m/s,缺失为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,heading,motion.heading,"直接映射，范围 [0,360)",degree,缺失或越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,vertical_rate,motion.vertical_rate,直接映射,m/s,缺失为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,on_ground,status.on_ground,转换为布尔值,无,必需状态字段,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,time_source,quality.time_source,保留 position_time 或 last_contact_fallback,无,未知来源记异常,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+OpenSky,lat/lon/latest_time/message_valid,quality.*,坐标合法、时间为正并保留结构校验结论,无,按校验结果取布尔值,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,target_id,track_id,小写六位十六进制，保留前导0,无,格式不合法则拒绝记录,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,latest_time,timestamp,直接映射为正整数 Unix 秒,s,非正值使 time_valid=false,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,validity_flags.bit6+callsign,identity.callsign,有效时去补0,无,无效或空白为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,latitude_code+validity_flags.bit0,position.lat,code/(2^22-1)*180-90,degree,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,longitude_code+validity_flags.bit1,position.lon,code/(2^22-1)*360-180,degree,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,altitude_code+validity_flags.bit2,position.alt,code-1000,m,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,status_flags.bit1+altitude,position.alt_type,0=barometric，1=geometric,无,高度无效时 unknown,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,speed_code+validity_flags.bit3,motion.speed,code*0.1,m/s,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,heading_code+validity_flags.bit4,motion.heading,code*0.01，必须小于360,degree,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,vertical_rate_code+validity_flags.bit5,motion.vertical_rate,code*0.01-327.68,m/s,有效位0或码越界为 null,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,status_flags.bit0,status.on_ground,转换为布尔值,无,必需状态字段,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,status_flags.bit2,quality.time_source,0=position_time，1=last_contact_fallback,无,保留位异常使消息无效,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,validity_flags+编码范围,quality.position_valid,纬经均有效且解码范围合法,无,按校验结果取布尔值,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
+TeachingLink,timestamp+message_valid,quality.time_valid/quality.message_valid,时间正数；完整帧且标志/保留位一致,无,按校验结果取布尔值,source_field_definitions.md；teaching_message_spec.md；样例 CSV,True
