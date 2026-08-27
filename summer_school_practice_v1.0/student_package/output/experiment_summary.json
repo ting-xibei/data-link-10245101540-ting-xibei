@@ -1,0 +1,12 @@
+{
+  "source_snapshot_count": 3,
+  "source_record_count": 71,
+  "selected_record_count": 71,
+  "encoded_frame_count": 71,
+  "decoded_record_count": 71,
+  "valid_decoded_count": 71,
+  "parse_or_encode_error_count": 0,
+  "final_target_count": 24,
+  "precision_row_count": 497,
+  "precision_passed_count": 497
+}

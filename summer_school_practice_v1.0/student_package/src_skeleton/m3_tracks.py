@@ -415,7 +415,8 @@ def run_real_opensky_validation(project_root: Path | None = None) -> dict[str, i
         target_hint = item["vector"][0] if isinstance(item["vector"], list) and item["vector"] else ""
         try:
             source_record = parse_state_vector(item["vector"])
-            frame = encode_position_message(source_record, sequence)
+            field_errors = list(source_record.pop("_field_errors", []))
+            frame = encode_position_message(source_record, sequence, field_errors)
             decoded = decode_position_message(frame)
         except ProtocolError as error:
             parse_errors += 1
@@ -463,7 +464,16 @@ def run_real_opensky_validation(project_root: Path | None = None) -> dict[str, i
                 "frame_length": len(frame),
                 "checksum": decoded.get("checksum"),
                 "message_valid": decoded.get("message_valid"),
-                "validation_errors": decoded.get("validation_errors"),
+                # 可选字段错误保留在传输日志中，但 decoded.message_valid 仍只
+                # 表示完整帧接收结论，不因字段降级为空而自动变为 false。
+                "validation_errors": ";".join(
+                    item
+                    for item in (
+                        *(f"{error.field}:{error.problem_type}" for error in field_errors),
+                        str(decoded.get("validation_errors") or ""),
+                    )
+                    if item
+                ),
             }
         )
         for row in _roundtrip_rows(source_record, decoded):

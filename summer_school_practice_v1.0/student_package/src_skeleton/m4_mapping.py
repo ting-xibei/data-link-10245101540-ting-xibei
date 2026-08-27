@@ -92,10 +92,13 @@ def _teaching_quality(record: dict[str, Any], values: dict[str, Any]) -> dict[st
     validity_flags = _as_int(record.get("validity_flags"), "validity_flags")
     status_flags = _as_int(record.get("status_flags"), "status_flags")
     anomalies: list[str] = []
+    frame_anomalies: list[str] = []
     if validity_flags & 0x80:
         anomalies.append("validity_flags_reserved_bit_set")
+        frame_anomalies.append("validity_flags_reserved_bit_set")
     if status_flags & 0xF8:
         anomalies.append("status_flags_reserved_bits_set")
+        frame_anomalies.append("status_flags_reserved_bits_set")
     for name, bit in (("latitude", 0), ("longitude", 1), ("altitude", 2), ("speed", 3), ("heading", 4), ("vertical_rate", 5)):
         if _flag(validity_flags, bit) and values[name] is None:
             anomalies.append(f"{name}_code_out_of_range")
@@ -103,7 +106,7 @@ def _teaching_quality(record: dict[str, Any], values: dict[str, Any]) -> dict[st
     return {
         "position_valid": values["latitude"] is not None and values["longitude"] is not None,
         "time_valid": timestamp > 0,
-        "message_valid": _as_bool(record.get("message_valid"), "message_valid") and not anomalies,
+        "message_valid": _as_bool(record.get("message_valid"), "message_valid") and not frame_anomalies,
         "time_source": "last_contact_fallback" if _flag(status_flags, 2) else "position_time",
         "anomaly_flags": anomalies,
     }
@@ -152,6 +155,12 @@ def _map_opensky(record: dict[str, Any]) -> dict[str, Any]:
         anomalies.append("longitude_out_of_range"); lon = None
     if heading is not None and not 0 <= heading < 360:
         anomalies.append("heading_out_of_range"); heading = None
+    if altitude is not None and not -1000 <= altitude <= 64535:
+        anomalies.append("altitude_out_of_range"); altitude = None
+    if speed is not None and not 0 <= speed <= 6553.5:
+        anomalies.append("speed_out_of_range"); speed = None
+    if vertical_rate is not None and not -327.68 <= vertical_rate <= 327.67:
+        anomalies.append("vertical_rate_out_of_range"); vertical_rate = None
     timestamp = _as_int(record.get("latest_time", record.get("timestamp")), "timestamp")
     raw_callsign = record.get("callsign")
     callsign = None if raw_callsign is None or not str(raw_callsign).strip() else str(raw_callsign).strip()
@@ -169,7 +178,7 @@ def _map_opensky(record: dict[str, Any]) -> dict[str, Any]:
         "motion": {"speed": speed, "heading": heading, "vertical_rate": vertical_rate},
         "status": {"on_ground": _as_bool(record.get("on_ground"), "on_ground")},
         "quality": {"position_valid": lat is not None and lon is not None, "time_valid": timestamp > 0,
-                    "message_valid": _as_bool(record.get("message_valid"), "message_valid") and not anomalies,
+                    "message_valid": _as_bool(record.get("message_valid"), "message_valid"),
                     "time_source": time_source, "anomaly_flags": anomalies},
     }
 
@@ -182,23 +191,30 @@ def _mapping_row(source: str, input_field: str, unified_field: str, rule: str, u
 
 
 def _verified_mapping_rows() -> list[dict[str, Any]]:
-    """给出两种来源的完整人工核验规则，而不是沿用候选表的错误列。"""
+    """给出逐字段可追溯的人工核验规则，不压缩质量和来源语义。"""
     rows: list[dict[str, Any]] = []
     for source, fields in (
         ("OpenSky", [
+            ("source_format", "source", "映射上下文常量 OpenSky", "无", "不适用"),
             ("target_id", "track_id", "小写六位十六进制，保留前导0", "无", "格式不合法则拒绝记录"),
             ("latest_time", "timestamp", "直接映射为正整数 Unix 秒", "s", "非正值使 time_valid=false"),
             ("callsign", "identity.callsign", "去首尾空白", "无", "空白为 null"),
-            ("lat/lon", "position.lat/position.lon", "合法坐标直接映射", "degree", "空值或越界为 null"),
-            ("altitude+alt_type", "position.alt/position.alt_type", "直接映射并保留高度来源", "m", "高度无效时 null/unknown"),
-            ("speed", "motion.speed", "直接映射", "m/s", "缺失为 null"),
+            ("lat", "position.lat", "合法值直接映射", "degree", "空值或越界为 null"),
+            ("lon", "position.lon", "合法值直接映射", "degree", "空值或越界为 null"),
+            ("altitude", "position.alt", "量程内直接映射", "m", "空值或越界为 null"),
+            ("alt_type+altitude", "position.alt_type", "高度有效时保留 barometric/geometric", "无", "高度为空或来源未知时 unknown"),
+            ("speed", "motion.speed", "量程内直接映射", "m/s", "缺失或越界为 null"),
             ("heading", "motion.heading", "直接映射，范围 [0,360)", "degree", "缺失或越界为 null"),
-            ("vertical_rate", "motion.vertical_rate", "直接映射", "m/s", "缺失为 null"),
+            ("vertical_rate", "motion.vertical_rate", "量程内直接映射", "m/s", "缺失或越界为 null"),
             ("on_ground", "status.on_ground", "转换为布尔值", "无", "必需状态字段"),
             ("time_source", "quality.time_source", "保留 position_time 或 last_contact_fallback", "无", "未知来源记异常"),
-            ("lat/lon/latest_time/message_valid", "quality.*", "坐标合法、时间为正并保留结构校验结论", "无", "按校验结果取布尔值"),
+            ("lat+lon", "quality.position_valid", "纬经均非 null 且范围合法", "无", "任一为空或越界为 false"),
+            ("latest_time", "quality.time_valid", "正整数 Unix 秒为 true", "s", "非正值为 false；不新增陈旧阈值"),
+            ("message_valid", "quality.message_valid", "保留上游结构/消息接收结论", "无", "字段级异常不改写该值"),
+            ("可选物理量+alt_type+time_source", "quality.anomaly_flags", "记录可选字段越界及未知高度或时间来源", "无", "无异常时空数组"),
         ]),
         ("TeachingLink", [
+            ("source_format", "source", "映射上下文常量 TeachingLink", "无", "不适用"),
             ("target_id", "track_id", "小写六位十六进制，保留前导0", "无", "格式不合法则拒绝记录"),
             ("latest_time", "timestamp", "直接映射为正整数 Unix 秒", "s", "非正值使 time_valid=false"),
             ("validity_flags.bit6+callsign", "identity.callsign", "有效时去补0", "无", "无效或空白为 null"),
@@ -212,7 +228,9 @@ def _verified_mapping_rows() -> list[dict[str, Any]]:
             ("status_flags.bit0", "status.on_ground", "转换为布尔值", "无", "必需状态字段"),
             ("status_flags.bit2", "quality.time_source", "0=position_time，1=last_contact_fallback", "无", "保留位异常使消息无效"),
             ("validity_flags+编码范围", "quality.position_valid", "纬经均有效且解码范围合法", "无", "按校验结果取布尔值"),
-            ("timestamp+message_valid", "quality.time_valid/quality.message_valid", "时间正数；完整帧且标志/保留位一致", "无", "按校验结果取布尔值"),
+            ("latest_time", "quality.time_valid", "正整数 Unix 秒为 true", "s", "非正值为 false；不新增陈旧阈值"),
+            ("message_valid+帧结构异常", "quality.message_valid", "保留接收结论；仅保留位等帧结构异常可使其为 false", "无", "可选字段编码越界不改写该值"),
+            ("validity_flags+status_flags+协议整数", "quality.anomaly_flags", "记录保留位非零和有效编码越界", "无", "无异常时空数组"),
         ]),
     ):
         rows.extend(_mapping_row(source, *field) for field in fields)
@@ -280,12 +298,13 @@ def _write_review_note(path: Path, summary: dict[str, int]) -> None:
     """写出一页以内、仅陈述实际候选审查和样例验证的记录。"""
     text = f"""# M4 AI 辅助映射核验说明
 
-- 候选来源：学校提供的 `reference/pre_generated_mapping_candidate.csv`（作为 AI/自动候选，不作为最终规则）。
-- 使用材料：候选表、`source_field_definitions.md`、`teaching_message_spec.md`、两个字段字典、`unified_model.json`，以及 M3 OpenSky 当前态势和 TeachingLink 样例。
-- 发现的问题：候选将 TeachingLink 纬度/经度目标字段对调；高度规则遗漏 `-1000 m` 偏置；呼号未结合有效位；`status_flags.bit2` 被错误写为 `quality.time_valid`，没有表达其时间回退来源语义；并且未覆盖全部必需字段。
-- 修订依据：规范规定纬度、经度均为 22 位但公式量程不同；高度为 `code-1000`；validity bit6 控制呼号；status bit2 是 `timestamp_fallback`。正式映射从编码列和标志位恢复物理量，有效位为 0 时写入 `null`。
-- 优化与修订过程：先原样保留 8 条候选，逐行与字段定义比对；随后将经纬度映射分别改为 `latitude_code→position.lat`、`longitude_code→position.lon`，并应用各自公式。再把高度规则由“code乘1米”修正为 `code-1000`，把呼号规则补充为“validity bit6 为 0 时 null”，把 status bit2 从 `time_valid` 改为 `quality.time_source`（0=position_time，1=last_contact_fallback）。最后补齐候选未覆盖的速度、航向、垂直速度、地面状态、质量字段及空值策略，形成 25 条正式规则；实现时只从 TeachingLink 的编码列和标志位恢复数值，不借用其已换算展示列。
-- 验证结果：读取 {summary['candidate_rows']} 条候选并形成 {summary['verified_rows']} 条已核验规则；转换 OpenSky {summary['opensky_records']} 条、TeachingLink {summary['teaching_records']} 条为 NDJSON。全部 {summary['unified_records']} 条通过模型结构、标识、时间、位置有效性和高度类型自检；3 个同目标样例共享关键字段一致。目标 `000001` 的垂直速度真实零值保留为 `0.0`；`780def` 缺失位置与呼号保留为 `null`。
+- 候选来源：根据 `prompts/m4_llm_candidate_prompt_used.md` 在独立大模型会话中生成的 `reference/llm_generated_mapping_candidate.csv`；候选共 {summary['candidate_rows']} 条，不作为最终规则。
+- 使用材料：候选表、字段定义、TeachingLink 位宽/公式/标志位说明、`unified_model.json`，以及 M3 OpenSky 当前态势和 TeachingLink 样例。
+- 候选核验：核心字段映射正确覆盖了速度、航向、垂直速度，且纬经度公式、高度 `code-1000`、有效位空值策略和 status bit2 的时间来源语义均正确。候选没有把协议整数 0 误写为物理 0。
+- 发现的问题：候选将 `position_valid`、`time_valid` 和 `anomaly_flags` 标为 `UNRESOLVED`，并未给出航向越界、保留位或编码越界的处置；`source_format` 是映射上下文而非原始行字段；呼号还需在去补零后去除首尾空白。
+- 人工修订依据与决策：坐标有效定义为纬经度均非 null 且范围合法；时间有效定义为正整数 Unix 秒，本实验不新增陈旧阈值；可选字段越界和未知来源写入 `anomaly_flags` 并把对应统一字段置为 `null`，但不改写上游 `message_valid`；只有保留位等帧结构异常可使 TeachingLink 的 `message_valid` 为 false。target_id 统一为六位小写十六进制，格式不合法则拒绝记录。
+- 正式规则表：不再将 `source`、位置、质量和异常语义压缩为宽泛的 `quality.*` 行；按统一模型叶字段列出 OpenSky 17 条和 TeachingLink 17 条，异常标志在每种来源内合并为一条完整策略。
+- 验证结果：形成 {summary['verified_rows']} 条已核验规则；转换 OpenSky {summary['opensky_records']} 条、TeachingLink {summary['teaching_records']} 条为 NDJSON。全部 {summary['unified_records']} 条通过模型结构、标识、时间、位置有效性和高度类型自检；3 个同目标样例共享关键字段一致。`000001` 的垂直速度真实零值保留为 `0.0`；`780def` 缺失位置与呼号保留为 `null`。
 - 局限性：验证仅覆盖课程提供的 3 条当前态势样例，不能证明对未见字段组合或实时来源的完备性；`message_valid` 仅代表结构/帧接收校验，不代表来源真实或飞行状态安全。
 - 不由 AI 决定：位宽、比例因子、偏置、单位、有效位空值策略、状态来源语义和最终 `verified` 结论均以协议与字段定义为准。
 """
@@ -298,7 +317,7 @@ def run_m4(project_root: Path | None = None) -> dict[str, int]:
     root = project_root or Path(__file__).resolve().parents[2]
     package, output = root / "student_package", root / "student_package" / "output"
     output.mkdir(parents=True, exist_ok=True)
-    candidate_path = package / "reference" / "pre_generated_mapping_candidate.csv"
+    candidate_path = package / "reference" / "llm_generated_mapping_candidate.csv"
     candidate_rows = _read_csv(candidate_path)
     verified_rows = verify_candidate_mapping(candidate_rows)
     model = json.loads((package / "schema" / "unified_model.json").read_text(encoding="utf-8"))
@@ -313,7 +332,7 @@ def run_m4(project_root: Path | None = None) -> dict[str, int]:
     with (output / "unified_situation.ndjson").open("w", encoding="utf-8") as handle:
         for message in messages: handle.write(json.dumps(message, ensure_ascii=False, separators=(",", ":")) + "\n")
     summary = {"candidate_rows": len(candidate_rows), "verified_rows": len(verified_rows), "opensky_records": len(opensky_rows), "teaching_records": len(teaching_rows), "unified_records": len(messages)}
-    _write_review_note(output / "m4_ai_mapping_review.md", summary)
+    _write_review_note(package / "docs" / "M4_mapping_review.md", summary)
     return summary
 
 

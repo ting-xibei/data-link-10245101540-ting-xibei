@@ -1,10 +1,15 @@
 ﻿record_no,target_id,stage,field,problem_type,value,description
 4,780bad,parse_or_encode,timestamp,REQUIRED_FIELD_MISSING,,time_position 与 last_contact 均为空。
-5,780bee,parse_or_encode,heading,OUT_OF_RANGE,360.0,"字段量程必须在 [0.0, 359.99999999999994] 内。"
+5,780bee,optional_field_validation,heading,OUT_OF_RANGE,360.0,"字段量程必须在 [0.0, 359.99999999999994] 内。"
 test_length,,receive_validation,frame,LENGTH_ERROR,,实际帧长度为 40，要求为 41。
 test_magic,780abc,receive_validation,magic,MAGIC_ERROR,,magic 必须为 0x4453。
 test_version,780abc,receive_validation,version,VERSION_ERROR,,version 必须为 1。
 test_message_type,780abc,receive_validation,message_type,MESSAGE_TYPE_ERROR,,message_type 必须为 1。
+test_message_length,780abc,receive_validation,message_length,LENGTH_ERROR,,帧内 message_length 必须为 41。
+test_required_timestamp,780abc,receive_validation,timestamp,REQUIRED_FIELD_MISSING,,接收帧 timestamp 必须为可用的非零 Unix 秒时间戳。
 test_checksum,780abc,receive_validation,checksum,CHECKSUM_ERROR,,checksum 与前 39 字节重算结果不一致。
-test_reserved_bits,780abc,receive_validation,latitude_code,RESERVED_BITS_ERROR,,纬度容器最高 2 位必须为 0。
+test_latitude_reserved_bits,780abc,receive_validation,latitude_code,RESERVED_BITS_ERROR,,纬度容器最高 2 位必须为 0。
+test_longitude_reserved_bits,780abc,receive_validation,longitude_code,RESERVED_BITS_ERROR,,经度容器最高 2 位必须为 0。
+test_status_reserved_bits,780abc,receive_validation,status_flags,RESERVED_BITS_ERROR,,status_flags 的 bit3-bit7 必须为 0。
+test_validity_reserved_bits,780abc,receive_validation,validity_flags,RESERVED_BITS_ERROR,,validity_flags 的 bit7 必须为 0。
 test_flag_value,780abc,receive_validation,lat,FLAG_VALUE_INCONSISTENCY,,有效位为 0 时占位字段必须为 0。

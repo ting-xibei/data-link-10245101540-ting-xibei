@@ -20,3 +20,10 @@ speed,,False,0,3,,False,0/0,True
 heading,270.0,True,27000,4,270.0,True,0/0.01,True
 vertical_rate,-1.2,True,32648,5,-1.1999999999999886,True,1.13242748512e-14/0.01,True
 callsign,,False,,6,,False,0/0,True
+lat,22.5431,True,2622444,0,22.54311383798452,True,1.38379845218e-05/4.29153544701e-05,True
+lon,114.0579,True,3426022,1,114.05789710471561,True,2.89528439623e-06/8.58307089402e-05,True
+altitude,9000.0,True,10000,2,9000.0,True,0/1,True
+speed,220.0,True,2200,3,220.0,True,0/0.1,True
+heading,,False,0,4,,False,0/0,True
+vertical_rate,0.0,True,32768,5,0.0,True,0/0.01,True
+callsign,BADHEAD,True,BADHEAD,6,BADHEAD,True,0/0,True
