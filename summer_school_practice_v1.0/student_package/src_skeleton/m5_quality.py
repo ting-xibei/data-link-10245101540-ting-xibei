@@ -1,3 +1,5 @@
+"""M5：使用固定规则生成告警日志和每条记录的质量状态。"""
+
 from __future__ import annotations
 
 import csv
@@ -5,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
+# 固定批次时间使延迟判断和实验输出可以重复验证。
 BATCH_TIME = 1710000120
 ALERT_FIELDS = ["alert_time", "target_id", "alert_type", "severity", "field", "description"]
 QUALITY_FIELDS = [
@@ -32,6 +35,7 @@ def _is_missing(value: Any) -> bool:
 
 
 def _as_int(value: Any, field: str) -> int:
+    """将输入转换为整数，避免布尔值或空文本混入时间字段。"""
     if isinstance(value, bool):
         raise ValueError(f"{field} 不能为布尔值。")
     if isinstance(value, int):
@@ -42,6 +46,7 @@ def _as_int(value: Any, field: str) -> int:
 
 
 def _as_number(value: Any, field: str) -> float | None:
+    """将数值字段转换为浮点数；空值保留为 None。"""
     if _is_missing(value):
         return None
     if isinstance(value, bool):
@@ -53,6 +58,7 @@ def _as_number(value: Any, field: str) -> float | None:
 
 
 def _as_bool(value: Any, field: str) -> bool:
+    """读取布尔字段，兼容 CSV 中的 True/False 文本。"""
     if isinstance(value, bool):
         return value
     if isinstance(value, str) and value.strip().lower() in {"true", "false"}:
@@ -61,6 +67,7 @@ def _as_bool(value: Any, field: str) -> bool:
 
 
 def _record_time(record: dict[str, Any]) -> int:
+    """优先取最新态势时间，没有时回退到记录时间。"""
     """延迟检查只使用已传输的 latest_time 或 timestamp。"""
     candidate = record.get("latest_time")
     if _is_missing(candidate):
@@ -69,6 +76,7 @@ def _record_time(record: dict[str, Any]) -> int:
 
 
 def _timestamp(record: dict[str, Any]) -> int:
+    """取得用于重复记录分组的时间戳。"""
     """重复联合键和质量输出使用记录的 timestamp。"""
     return _as_int(record.get("timestamp"), "timestamp")
 
@@ -251,6 +259,7 @@ def _validate_rule_file(path: Path) -> None:
 
 
 def _write_csv(path: Path, fields: list[str], rows: list[dict[str, Any]]) -> None:
+    """按课程模板写出告警或质量态势 CSV。"""
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()

@@ -1,3 +1,5 @@
+"""M6：从固定入口依次运行 M2--M5，并检查关键成果能被重新读取。"""
+
 from __future__ import annotations
 
 import csv
@@ -14,6 +16,7 @@ from m4_mapping import run_m4
 from m5_quality import run_m5
 
 
+# 所有路径从当前课程包推导，避免依赖终端的工作目录。
 STUDENT_PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = STUDENT_PACKAGE_ROOT.parent
 OUTPUT_ROOT = STUDENT_PACKAGE_ROOT / "output"
@@ -122,11 +125,13 @@ def export_results() -> None:
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:
+    """重新读取 CSV，用于确认下游模块可以使用上游成果。"""
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
 
 
 def _read_ndjson(path: Path) -> list[dict[str, Any]]:
+    """逐行读取统一消息，确保每行都是独立 JSON 对象。"""
     messages: list[dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, start=1):
@@ -272,6 +277,7 @@ def _write_presentation_outline(path: Path) -> None:
 
 
 def run_pipeline() -> dict[str, dict[str, int]]:
+    """按数据链顺序执行全部阶段，并返回每个阶段的统计信息。"""
     prepare_output_directory()
     parse()
     encode()

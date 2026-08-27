@@ -1,3 +1,5 @@
+"""M4：将 OpenSky 与 TeachingLink 两种来源转换为同一套态势模型。"""
+
 from __future__ import annotations
 
 import csv
@@ -8,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 
+# 统一消息的顶层字段和映射表固定列，用于输出前自检。
 MODEL_FIELDS = {"track_id", "source", "timestamp", "identity", "position", "motion", "status", "quality"}
 MAPPING_FIELDS = ["source_format", "input_field", "unified_field", "mapping_rule", "unit_conversion", "null_strategy", "evidence", "verified"]
 TARGET_ID_PATTERN = re.compile(r"^[0-9a-f]{6}$")
@@ -59,6 +62,7 @@ def _flag(flags: int, bit: int) -> bool:
 
 
 def _valid_code(code: int, lower: int, upper: int) -> bool:
+    """检查协议整数是否仍在该字段允许的编码范围内。"""
     return lower <= code <= upper
 
 
@@ -171,6 +175,7 @@ def _map_opensky(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def _mapping_row(source: str, input_field: str, unified_field: str, rule: str, unit: str, null_strategy: str) -> dict[str, Any]:
+    """构造一条可追溯的正式映射规则。"""
     return {"source_format": source, "input_field": input_field, "unified_field": unified_field,
             "mapping_rule": rule, "unit_conversion": unit, "null_strategy": null_strategy,
             "evidence": "source_field_definitions.md；teaching_message_spec.md；样例 CSV", "verified": True}
@@ -234,11 +239,13 @@ def map_to_unified(record: dict[str, Any], source_format: str) -> dict[str, Any]
 
 
 def _read_csv(path: Path) -> list[dict[str, Any]]:
+    """读取来源或候选 CSV，并保留列名作为字典键。"""
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
 
 
 def _write_csv(path: Path, fields: list[str], rows: list[dict[str, Any]]) -> None:
+    """按规定列顺序写出映射候选或正式规则。"""
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader(); writer.writerows(rows)
@@ -286,6 +293,7 @@ def _write_review_note(path: Path, summary: dict[str, int]) -> None:
 
 
 def run_m4(project_root: Path | None = None) -> dict[str, int]:
+    """执行候选核验、双来源映射、模型检查和结果导出。"""
     """完成 M4：保留候选、形成正式映射、生成统一 NDJSON 和审查说明。"""
     root = project_root or Path(__file__).resolve().parents[2]
     package, output = root / "student_package", root / "student_package" / "output"

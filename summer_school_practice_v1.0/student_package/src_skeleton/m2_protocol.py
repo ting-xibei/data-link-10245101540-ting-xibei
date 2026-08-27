@@ -1,3 +1,5 @@
+"""M2：把 OpenSky 状态数组编码为 TeachingLink 帧，并在接收端恢复与校验。"""
+
 from __future__ import annotations
 
 import csv
@@ -7,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 
+# TeachingLink 固定帧的基础约定，编码端和解码端共用。
 FRAME_SIZE = 41
 MAGIC = 0x4453
 VERSION = 1
@@ -36,6 +39,7 @@ class ProtocolError(ValueError):
 
 
 def _problem(field: str, problem_type: str, value: Any, description: str) -> ProtocolError:
+    """创建统一格式的字段错误，供上层写入验证日志。"""
     return ProtocolError(field, problem_type, value, description)
 
 
@@ -151,6 +155,7 @@ def calculate_checksum(data_without_checksum: bytes) -> int:
 
 
 def _encode_optional(frame: bytearray, offset: int, width: int, code: int | None, bit: int, validity: int) -> int:
+    """写入一个可选协议字段，并同步更新它的有效位。"""
     if code is None:
         return validity
     if not 0 <= code < (1 << (width * 8)):
@@ -389,6 +394,7 @@ ROUNDTRIP_FIELDS = ["field", "source_value", "source_valid", "protocol_code", "f
 
 
 def _as_csv_value(value: Any) -> Any:
+    """将内部空值转换为 CSV 可以直接写出的空字符串。"""
     return "" if value is None else value
 
 
@@ -488,6 +494,7 @@ def _error_frames(frame: bytes) -> list[tuple[str, bytes]]:
 
 
 def _write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, Any]]) -> None:
+    """以 UTF-8 with BOM 写出结果，便于 Excel 直接查看。"""
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
@@ -495,6 +502,7 @@ def _write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, Any]]) ->
 
 
 def run_m2(project_root: Path | None = None) -> dict[str, int]:
+    """执行 M2 全流程，并生成二进制帧、解码表、日志和误差报告。"""
     """批量处理 raw_states.json，并生成 M2 规定的四项结果。"""
     root = project_root or Path(__file__).resolve().parents[2]
     package = root / "student_package"

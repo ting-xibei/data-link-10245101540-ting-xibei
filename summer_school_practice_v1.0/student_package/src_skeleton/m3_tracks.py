@@ -1,3 +1,5 @@
+"""M3：将多时刻 TeachingLink 消息组织为航迹、当前态势和可选 SQLite 数据。"""
+
 from __future__ import annotations
 
 import csv
@@ -21,6 +23,7 @@ from m2_protocol import (
 )
 
 
+# 航迹表保存同一目标按时间排序后的全部历史点。
 TRACK_FIELDS = [
     "target_id",
     "timestamp",
@@ -32,6 +35,7 @@ TRACK_FIELDS = [
     "speed",
     "heading",
 ]
+# 当前态势表只保留每个目标时间最新的一条可接受记录。
 CURRENT_SITUATION_FIELDS = [
     "target_id",
     "callsign",
@@ -295,6 +299,7 @@ def build_current_situation(records: list[dict[str, Any]]) -> list[dict[str, Any
 
 
 def _write_csv(path: Path, fields: list[str], rows: list[dict[str, Any]]) -> None:
+    """按模板字段顺序写出 M3 CSV 成果。"""
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -502,6 +507,7 @@ def run_real_opensky_validation(project_root: Path | None = None) -> dict[str, i
 
 
 def run_m3(project_root: Path | None = None) -> dict[str, int]:
+    """执行 M3 读取、解码、航迹、当前态势及选做持久化流程。"""
     """完成 M3 必做和选做路径：CSV、SQLite 重读查询、经纬度航迹图。"""
     root = project_root or Path(__file__).resolve().parents[2]
     package = root / "student_package"
